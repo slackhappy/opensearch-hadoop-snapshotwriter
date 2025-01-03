@@ -23,6 +23,7 @@ import org.opensearch.common.xcontent.LoggingDeprecationHandler;
 import org.opensearch.common.xcontent.XContentFactory;
 import org.opensearch.common.xcontent.XContentHelper;
 import org.opensearch.common.xcontent.json.JsonXContent;
+import org.opensearch.core.common.bytes.BytesReference;
 import org.opensearch.core.xcontent.MediaTypeRegistry;
 import org.opensearch.core.xcontent.NamedXContentRegistry;
 import org.opensearch.core.xcontent.XContentBuilder;
@@ -116,7 +117,7 @@ public class OpenSearchSnapshotOutputFormat extends OpenSearchSnapshotOutputForm
     public static void setIndexMapping(Configuration conf, Map<String, ?> mapping) {
         try (XContentBuilder builder = XContentFactory.jsonBuilder()) {
             builder.map(mapping);
-            conf.set(MAPPING_KEY, builder.toString());
+            conf.set(MAPPING_KEY,  BytesReference.bytes(builder).utf8ToString());
         } catch (IOException e) {
             throw new RuntimeException("Failed to encode index mapping", e);
         }
@@ -193,7 +194,7 @@ public class OpenSearchSnapshotOutputFormat extends OpenSearchSnapshotOutputForm
         body.put("dynamic", "strict");
         try (XContentBuilder builder = XContentFactory.jsonBuilder()) {
             builder.map(map);
-            String finalMapping = builder.toString();
+            String finalMapping =  BytesReference.bytes(builder).utf8ToString();
             conf.set(MAPPING_KEY, finalMapping);
             return finalMapping;
         }
