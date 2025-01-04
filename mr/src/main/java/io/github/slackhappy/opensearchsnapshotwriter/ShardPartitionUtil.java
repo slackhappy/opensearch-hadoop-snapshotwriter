@@ -7,8 +7,11 @@ package io.github.slackhappy.opensearchsnapshotwriter;
 
 import org.opensearch.Version;
 import org.opensearch.cluster.metadata.IndexMetadata;
+import org.opensearch.cluster.metadata.MetadataCreateIndexService;
 import org.opensearch.cluster.routing.OperationRouting;
 import org.opensearch.common.settings.Settings;
+
+import static org.opensearch.Version.CURRENT;
 
 
 /**
@@ -33,12 +36,18 @@ public class ShardPartitionUtil {
             .settings(Settings.builder().put(IndexMetadata.SETTING_VERSION_CREATED, Version.CURRENT))
             .numberOfShards(numShards)
             .numberOfReplicas(0)
+            .setRoutingNumShards(getNumberOfRoutingShards(numShards))
             .build();
         return indexMetadata;
     }
 
     public Integer shardId(String id) {
         return OperationRouting.generateShardId(indexMetadata(), id, null);
+    }
+
+    // Number of virtual shards to partition ids on, to allow for shard splits later if needed.
+    public static int getNumberOfRoutingShards(int numShards) {
+        return MetadataCreateIndexService.calculateNumRoutingShards(numShards, CURRENT);
     }
 }
 

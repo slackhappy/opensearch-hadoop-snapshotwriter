@@ -16,6 +16,7 @@ import org.codelibs.opensearch.runner.OpenSearchRunner;
 import org.junit.Assert;
 import org.junit.Test;
 import org.opensearch.action.admin.cluster.repositories.put.PutRepositoryRequest;
+import org.opensearch.action.admin.cluster.state.ClusterStateResponse;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.repositories.RepositoryData;
@@ -101,6 +102,12 @@ public class OpenSearchSnapshotOutputCommitterTest {
             Assert.assertEquals("hits.total", numDocs, totalHits.value);
             Assert.assertEquals("shards.total", numShards, res.getTotalShards());
             Assert.assertEquals("shards.successful", numShards, res.getSuccessfulShards());
+
+            ClusterStateResponse cres = runner.client().admin().cluster().prepareState().get();
+            // need to get number of routing shards from cluster metadata until opensearch 2.19
+            Assert.assertEquals(
+                    ShardPartitionUtil.getNumberOfRoutingShards(numShards),
+                    cres.getState().getMetadata().index(indexName).getRoutingNumShards());
 
 
         } finally {

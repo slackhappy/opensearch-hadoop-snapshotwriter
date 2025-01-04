@@ -13,11 +13,13 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.*;
 import org.codelibs.opensearch.runner.OpenSearchRunner;
+import org.opensearch.Version;
 import org.opensearch.action.admin.cluster.repositories.put.PutRepositoryRequest;
 import org.opensearch.action.admin.cluster.snapshots.create.CreateSnapshotRequest;
 import org.opensearch.action.admin.cluster.snapshots.create.CreateSnapshotResponse;
 import org.opensearch.action.admin.indices.create.CreateIndexResponse;
 import org.opensearch.action.support.master.AcknowledgedResponse;
+import org.opensearch.cluster.metadata.MetadataCreateIndexService;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.common.xcontent.LoggingDeprecationHandler;
 import org.opensearch.common.xcontent.XContentFactory;
@@ -267,8 +269,7 @@ public class OpenSearchSnapshotOutputFormat extends OpenSearchSnapshotOutputForm
             Settings.Builder settingsBuilder = Settings.builder()
                 .put("index.number_of_replicas", 0)
                 .put("index.number_of_shards", numShards)
-                // TODO: consider using MetadataCreateIndexService.calculateNumRoutingShards
-                .put("index.number_of_routing_shards", numShards);
+                .put("index.number_of_routing_shards",  ShardPartitionUtil.getNumberOfRoutingShards(numShards));
 
             // When building the shards, disable refresh interval and translog syncing
             if (!isTemplate) {
